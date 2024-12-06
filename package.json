@@ -7,9 +7,13 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-    "pomo": "./index.js"
+    "pomo": "index.js"
   },
-  "keywords": ["pomodoro", "timer", "productivity"],
+  "keywords": [
+    "pomodoro",
+    "timer",
+    "productivity"
+  ],
   "author": "Nicole Grizzle",
   "license": "MIT",
   "description": "A Command Line Interface (CLI) tool to help you manage your time with pomodoro timers!",
