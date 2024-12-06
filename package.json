@@ -9,10 +9,10 @@
   "bin": {
     "pomo": "./index.js"
   },
-  "keywords": [],
+  "keywords": ["pomodoro", "timer", "productivity"],
   "author": "Nicole Grizzle",
   "license": "MIT",
-  "description": "",
+  "description": "A Command Line Interface (CLI) tool to help you manage your time with pomodoro timers!",
   "dependencies": {
     "node-notifier": "^10.0.1",
     "yargs": "^17.7.2"
