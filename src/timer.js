@@ -4,42 +4,53 @@ let paused = false;
 let remainingTime = 0;
 let endTime = 0;
 let startTime = 0;
+let timerPromiseResolve = null; // To hold the resolve function of the timer promise
+
 const interval = 100;
 
 // Starts or resumes the timer
 export const timer = (durationMs) => {
-  listenForInput();
+  listenForInput(); // Set up input listener
   startTime = Date.now();
   endTime = startTime + durationMs;
+  remainingTime = durationMs;
 
   return new Promise((resolve) => {
-    const updateTimer = () => {
-      const timeLeft = endTime - Date.now();
-
-      if (timeLeft <= 0) {
-        clearInterval(timerId);
-        timerId = null;
-        process.stdout.write("\rTimer: 00:00\nTimer ended.");
-        resolve({ time: startTime, duration: durationMs }); // Resolve the promise when the timer ends
-        return;
-      }
-      process.stdout.clearLine(0); // Clear current line
-      process.stdout.write(`\rTimer: ${formatDuration(timeLeft)}`);
-    };
-
-    if (timerId) clearInterval(timerId); // Ensure no overlapping intervals
-    timerId = setInterval(updateTimer, interval);
-    updateTimer(); // Immediate update
+    timerPromiseResolve = resolve;
+    startCountdown(); // Begin countdown
   });
+};
+
+// Handles the countdown logic
+const startCountdown = () => {
+  const updateTimer = () => {
+    const timeLeft = endTime - Date.now();
+
+    if (timeLeft <= 0) {
+      clearInterval(timerId);
+      timerId = null;
+      process.stdout.write(`\rTimer: ${formatDuration(0)}\nTimer ended.`);
+      if (timerPromiseResolve) {
+        timerPromiseResolve({ time: startTime, duration: remainingTime });
+        timerPromiseResolve = null; // Clean up
+      }
+      return;
+    }
+    process.stdout.write(`\rTimer: ${formatDuration(timeLeft)}`);
+  };
+
+  if (timerId) clearInterval(timerId); // Ensure no overlapping intervals
+  timerId = setInterval(updateTimer, interval);
+  updateTimer(); // Immediate update
 };
 
 // Pauses the timer
 export const pauseTimer = () => {
-  if (!timerId) return;
+  if (!timerId || paused) return;
   clearInterval(timerId);
   timerId = null;
   paused = true;
-  remainingTime = endTime - Date.now();
+  remainingTime = endTime - Date.now(); // Save remaining time
   process.stdout.clearLine();
   process.stdout.write("\rTimer paused.\n");
 };
@@ -48,18 +59,24 @@ export const pauseTimer = () => {
 export const resumeTimer = () => {
   if (!paused || remainingTime <= 0) return;
   paused = false;
-  timer(remainingTime); // Restart with the remaining time
+  endTime = Date.now() + remainingTime; // Recalculate end time
   process.stdout.clearLine();
   process.stdout.write("\rTimer resumed.\n");
+  startCountdown(); // Restart the countdown
 };
 
+// Stops the timer
 export const stopTimer = () => {
+  if (timerId) clearInterval(timerId);
+  timerId = null;
   paused = false;
   remainingTime = 0;
-  timerId = null;
-  clearInterval(timerId);
   process.stdout.clearLine();
-  process.stdout.write("\rTimer ended.");
+  process.stdout.write("\rTimer stopped.\n");
+  if (timerPromiseResolve) {
+    timerPromiseResolve({ time: startTime, duration: 0 }); // Resolve the timer's promise
+    timerPromiseResolve = null; // Clean up
+  }
   process.exit();
 };
 
@@ -77,7 +94,7 @@ export const listenForInput = () => {
         resumeTimer();
         break;
       case "s": // Stop
-      case "\u0003":
+      case "\u0003": // Ctrl+C
         stopTimer();
         break;
       default:
