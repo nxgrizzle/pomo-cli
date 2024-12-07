@@ -14,8 +14,8 @@ export const formatDuration = (milliseconds) => {
   const secs = totalSeconds % 60;
 
   // Format hours, minutes, and seconds with leading zeros
-  const formattedHrs = hrs > 0 ? `${hrs}:` : "";
-  const formattedMins = `${hrs > 0 ? String(mins).padStart(2, "0") : mins}:`;
+  const formattedHrs = `${String(hrs).padStart(1,"0")}:`
+  const formattedMins = `${String(mins).padStart(2, "0")}:`
   const formattedSecs = String(secs).padStart(2, "0");
 
   return `${formattedHrs}${formattedMins}${formattedSecs}`;
