@@ -11,10 +11,12 @@ export const getPomoValues = async (argv) => {
   const workTime = argv.work ?? config.work;
   const workBreakTime = argv.break ?? config.break;
   const totalRounds = argv.rounds ?? config.rounds;
+  const longBreakTime = argv.longBreak ?? config.longBreak;
   return {
     work: workTime,
     workBreak: workBreakTime,
     rounds: totalRounds,
+    longBreak:longBreakTime
   };
 };
 
@@ -23,8 +25,9 @@ export const updateConfigValues = async (argv) => {
 
   const data = {
     work: argv.work ?? config.work,
-    break: argv.Break ?? config.break,
+    break: argv.break ?? config.break,
     rounds: argv.rounds ?? config.rounds,
+    longBreak: argv.longBreak ?? config.longBreak,
   };
   await updateConfig(data);
 };
@@ -39,23 +42,26 @@ const writeMessage = (message) => {
 };
 
 export const handleRounds = async (argv) => {
-  const { work, workBreak, rounds } = await getPomoValues(argv);
+  const { work, workBreak, rounds, longBreak } = await getPomoValues(argv);
   // for all rounds
   for (let i = 0; i < rounds; i++) {
     process.stdout.write(`Round ${i + 1} of ${rounds} of work\n`);
     writeMessage(`Beginning work cycle. . .`);
     // wait for work to finish
     const wData = await timer(work * 60 * 1000);
-    const workData = { ...wData, type: "work" };
-    await insertPomo(workData);
-
+    if(!wData.skipped){
+      const workData = { ...wData, type: "work" };
+      await insertPomo(workData);
+    }
     writeMessage(`Beginning break cycle. . .`);
     // wait for the break to finish
-    const bData = await timer(workBreak * 60 * 1000);
-    const breakData = { ...bData, type: "break" };
-    await insertPomo(breakData);
+    const bData = i !== rounds-1 ? await timer(workBreak * 60 * 1000) : await timer(longBreak * 60 * 1000)
+    if(!bData.skipped){
+      const breakData = { ...bData, type: "break" };
+      await insertPomo(breakData);
+    }
   }
-  process.stdout.write("All rounds completed - Good job!")
+  writeMessage("All rounds completed - Good job!")
   process.exit(0);
 };
 

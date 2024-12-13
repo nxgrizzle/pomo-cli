@@ -53,6 +53,7 @@ export const pauseTimer = () => {
   remainingTime = endTime - Date.now(); // Save remaining time
   process.stdout.clearLine();
   process.stdout.write("\rTimer paused.\n");
+  showDirections();
 };
 
 // Resumes the paused timer
@@ -62,15 +63,21 @@ export const resumeTimer = () => {
   endTime = Date.now() + remainingTime; // Recalculate end time
   process.stdout.clearLine();
   process.stdout.write("\rTimer resumed.\n");
+  showDirections();
   startCountdown(); // Restart the countdown
 };
 
 // Stops the timer
-export const stopTimer = () => {
+
+const clearTimer = () => {
   if (timerId) clearInterval(timerId);
   timerId = null;
   paused = false;
   remainingTime = 0;
+};
+
+export const stopTimer = () => {
+  clearTimer();
   process.stdout.clearLine();
   process.stdout.write("\rTimer stopped.\n");
   if (timerPromiseResolve) {
@@ -80,10 +87,21 @@ export const stopTimer = () => {
   process.exit();
 };
 
+export const skipTimer = () => {
+  clearTimer();
+  process.stdout.clearLine();
+  process.stdout.write("\rTimer skipped.\n");
+  if (timerPromiseResolve) {
+    timerPromiseResolve({ time: startTime, duration: 0, skipped: true }); // Resolve the timer's promise
+    timerPromiseResolve = null;
+  }
+};
+
 // Listen for real-time input (keypress without Enter)
 export const listenForInput = () => {
   process.stdin.setRawMode(true);
   process.stdin.resume();
+
   process.stdin.on("data", (key) => {
     const input = key.toString().toLowerCase();
     switch (input) {
@@ -92,6 +110,9 @@ export const listenForInput = () => {
         break;
       case "r": // Resume
         resumeTimer();
+        break;
+      case "k": // Skip
+        skipTimer();
         break;
       case "s": // Stop
       case "\u0003": // Ctrl+C
@@ -102,6 +123,20 @@ export const listenForInput = () => {
         break;
     }
   });
+  showDirections();
+};
 
-  process.stdout.write("Press 'p' to pause, 'r' to resume, or 's' to stop.\n");
+const showDirections = () => {
+  const ACTIVE_DIRECTIONS = [
+    { prompt: "'p' to pause", condition: !paused },
+    { prompt: "'r' to resume", condition: paused },
+    { prompt: "'s' to stop", condition: true },
+    { prompt: "'k' to skip", condition: true },
+  ];
+  const stdOutString = ACTIVE_DIRECTIONS.filter(
+    (direction) => direction.condition == true
+  )
+    .map((direction) => direction.prompt)
+    .join("\n\t-");
+  process.stdout.write(`Press:\n\t-${stdOutString}\n`);
 };

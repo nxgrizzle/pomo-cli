@@ -1,7 +1,7 @@
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 // Get the directory of the current module
-export const DEFAULT_CONFIG_VALUES = { work: 25, break: 5, rounds: 4 };
+export const DEFAULT_CONFIG_VALUES = { work: 25, break: 5,longBreak:30,  rounds: 4 };
 export const DEFAULT_DB = {
   config:DEFAULT_CONFIG_VALUES,
   pomos:[]

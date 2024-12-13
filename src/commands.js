@@ -22,6 +22,11 @@ yargs(hideBin(process.argv))
     type: "string",
     description: "duration of the break period in minutes",
   })
+  .option("longBreak", {
+    alias: "l",
+    type: "string",
+    description: "duration of the long break period in minutes",
+  })
   .option("rounds", {
     alias: "r",
     type: "string",
@@ -48,11 +53,15 @@ yargs(hideBin(process.argv))
     type: "string",
     description: "duration of the work period",
   })
-
   .option("break", {
     alias: "b",
     type: "string",
     description: "duration of the break period",
+  })
+  .option("longBreak", {
+    alias: "l",
+    type: "string",
+    description: "duration of the long break period in minutes",
   })
   .option("rounds", {
     alias: "r",
